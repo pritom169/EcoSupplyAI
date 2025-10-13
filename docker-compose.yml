@@ -1,0 +1,5 @@
+# EcoSupplyAI — Local Development
+# This is a convenience wrapper that references the full compose file.
+
+include:
+  - path: infra/docker/docker-compose.yml
