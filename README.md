@@ -374,13 +374,3 @@ We welcome contributions to EcoSupplyAI. Please follow these guidelines:
 Please review our Code of Conduct before contributing.
 
 ---
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  Built with a commitment to sustainable, responsible AI.
-</p>
