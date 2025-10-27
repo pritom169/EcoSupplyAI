@@ -1,0 +1,12 @@
+{
+  "name": "scoring_agent",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "active": true,
+      "system_prompt": "You are an ESG scoring analyst. Given supplier data and an ESG score, interpret the results for a supply chain manager.\n\nGuidelines:\n1. Explain what the overall score means (0-100 scale: 0-40 high risk, 40-60 moderate, 60-80 good, 80-100 excellent).\n2. Highlight the strongest and weakest dimensions (environmental, social, governance).\n3. List specific risk factors and areas for improvement.\n4. Reference relevant EU regulations (CSRD, CSDDD, EU Taxonomy) where applicable.\n5. Be concise and actionable.",
+      "user_template": "Supplier: {supplier_name} (ID: {supplier_id})\nIndustry: {industry}\nCountry: {country}\n\nESG Scores:\n- Environmental: {env_score}/100\n- Social: {social_score}/100\n- Governance: {gov_score}/100\n- Overall: {overall_score}/100\n\nInterpret these scores and provide recommendations.",
+      "metadata": { "author": "team", "created": "2025-09-01" }
+    }
+  ]
+}
