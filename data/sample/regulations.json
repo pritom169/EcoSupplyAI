@@ -1,0 +1,146 @@
+{
+  "regulations": [
+    {
+      "id": "REG-001",
+      "name": "Corporate Sustainability Reporting Directive",
+      "acronym": "CSRD",
+      "description": "EU directive requiring large companies to disclose detailed sustainability information following the European Sustainability Reporting Standards (ESRS). Introduces double materiality and mandatory limited assurance.",
+      "effective_date": "2024-01-01",
+      "scope": "Large EU companies, listed SMEs, non-EU companies with >EUR 150M EU turnover",
+      "key_requirements": [
+        "Double materiality assessment",
+        "Report per ESRS standards",
+        "Limited assurance by independent auditor",
+        "Machine-readable digital format (iXBRL)",
+        "Scope 3 GHG emissions disclosure",
+        "Value chain due diligence findings"
+      ],
+      "penalties": "Member state-defined fines; potential director liability",
+      "applicable_industries": ["All"]
+    },
+    {
+      "id": "REG-002",
+      "name": "Carbon Border Adjustment Mechanism",
+      "acronym": "CBAM",
+      "description": "EU mechanism imposing a carbon price on imports of carbon-intensive goods to prevent carbon leakage and ensure fair competition with EU producers under the ETS.",
+      "effective_date": "2026-01-01",
+      "scope": "Importers of iron, steel, cement, aluminium, fertilisers, electricity, hydrogen",
+      "key_requirements": [
+        "Purchase CBAM certificates matching embedded emissions",
+        "Quarterly reporting of imported goods and emissions",
+        "Verification by accredited verifiers",
+        "Registration as authorised CBAM declarant"
+      ],
+      "penalties": "EUR 50 per tonne of unreported emissions; import ban for non-compliance",
+      "applicable_industries": ["Metals & Mining", "Chemicals & Materials", "Construction"]
+    },
+    {
+      "id": "REG-003",
+      "name": "EU Taxonomy Regulation",
+      "acronym": "EU Taxonomy",
+      "description": "Classification system establishing criteria for environmentally sustainable economic activities, guiding investors and companies on green investments.",
+      "effective_date": "2022-01-01",
+      "scope": "Companies subject to CSRD, financial market participants, EU member states",
+      "key_requirements": [
+        "Substantial contribution to at least one environmental objective",
+        "Do no significant harm (DNSH) to other objectives",
+        "Comply with minimum social safeguards",
+        "Meet technical screening criteria",
+        "Disclose taxonomy-aligned revenue, CapEx, and OpEx"
+      ],
+      "penalties": "Greenwashing liability; regulatory enforcement by national authorities",
+      "applicable_industries": ["All"]
+    },
+    {
+      "id": "REG-004",
+      "name": "Sustainable Finance Disclosure Regulation",
+      "acronym": "SFDR",
+      "description": "EU regulation requiring financial market participants to disclose sustainability risks and adverse impacts in their investment decisions and financial products.",
+      "effective_date": "2021-03-10",
+      "scope": "Financial market participants and financial advisers in the EU",
+      "key_requirements": [
+        "Entity-level sustainability risk disclosures",
+        "Product-level ESG classification (Article 6, 8, or 9)",
+        "Principal adverse impact (PAI) reporting",
+        "Pre-contractual and periodic sustainability disclosures"
+      ],
+      "penalties": "National competent authority sanctions; product reclassification",
+      "applicable_industries": ["Financial Services"]
+    },
+    {
+      "id": "REG-005",
+      "name": "Corporate Sustainability Due Diligence Directive",
+      "acronym": "CSDDD",
+      "description": "EU directive requiring large companies to identify, prevent, and mitigate adverse human rights and environmental impacts in their operations and value chains.",
+      "effective_date": "2027-07-01",
+      "scope": "EU companies with >1000 employees and >EUR 450M turnover; non-EU companies with equivalent EU turnover",
+      "key_requirements": [
+        "Integrate due diligence into corporate policies",
+        "Identify and assess adverse impacts in value chain",
+        "Prevent, mitigate, and remediate adverse impacts",
+        "Establish complaints mechanism",
+        "Monitor and publicly report on due diligence",
+        "Adopt climate transition plan"
+      ],
+      "penalties": "Up to 5% of worldwide net turnover; civil liability for damages",
+      "applicable_industries": ["All"]
+    },
+    {
+      "id": "REG-006",
+      "name": "EU Deforestation Regulation",
+      "acronym": "EUDR",
+      "description": "EU regulation prohibiting the placing on the EU market of commodities and products linked to deforestation or forest degradation after December 2020.",
+      "effective_date": "2025-12-30",
+      "scope": "Operators and traders dealing in cattle, cocoa, coffee, palm oil, rubber, soya, wood, and derived products",
+      "key_requirements": [
+        "Due diligence system with risk assessment",
+        "Geolocation data for production plots",
+        "Deforestation-free by cut-off date (31 Dec 2020)",
+        "Due diligence statements before placing products on market",
+        "Record-keeping for 5 years"
+      ],
+      "penalties": "Fines proportionate to environmental damage; confiscation of products; market ban",
+      "applicable_industries": ["Food & Agriculture", "Forestry & Wood Products", "Textiles & Apparel"]
+    },
+    {
+      "id": "REG-007",
+      "name": "EU Emissions Trading System",
+      "acronym": "EU ETS",
+      "description": "Cap-and-trade system limiting greenhouse gas emissions from energy-intensive industries, power generation, and aviation within the EU.",
+      "effective_date": "2005-01-01",
+      "scope": "Power stations, industrial plants, airlines operating in EU/EEA",
+      "key_requirements": [
+        "Monitor and report annual GHG emissions",
+        "Surrender allowances equal to verified emissions",
+        "Participate in allowance trading/auctioning",
+        "Comply with benchmark-based free allocation rules"
+      ],
+      "penalties": "EUR 100 per excess tonne (adjusted for inflation); name-and-shame publication",
+      "applicable_industries": ["Metals & Mining", "Chemicals & Materials", "Electronics & Components"]
+    },
+    {
+      "id": "REG-008",
+      "name": "EU Battery Regulation",
+      "acronym": "EU Battery Reg",
+      "description": "Comprehensive regulation covering the entire lifecycle of batteries placed on the EU market, from sustainable sourcing to end-of-life recycling.",
+      "effective_date": "2024-02-18",
+      "scope": "All batteries placed on the EU market (portable, automotive, EV, industrial)",
+      "key_requirements": [
+        "Carbon footprint declaration and maximum thresholds",
+        "Minimum recycled content targets",
+        "Supply chain due diligence for raw materials",
+        "Digital battery passport",
+        "Collection and recycling targets",
+        "Performance and durability requirements"
+      ],
+      "penalties": "National enforcement; market withdrawal; fines per member state law",
+      "applicable_industries": ["Electronics & Components", "Automotive Components"]
+    }
+  ],
+  "metadata": {
+    "generated_date": "2025-12-15",
+    "version": "1.0",
+    "total_regulations": 8,
+    "data_source": "EcoSupplyAI Synthetic Dataset"
+  }
+}
