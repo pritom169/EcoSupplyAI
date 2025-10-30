@@ -1,0 +1,73 @@
+# EcoSupplyAI — Staging Overlay
+# Usage: docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.staging.yml up -d
+
+x-staging-env: &staging-env
+  DEPLOYMENT_ENV: staging
+  LOG_LEVEL: WARNING
+
+services:
+  api-gateway:
+    environment:
+      <<: *staging-env
+    deploy:
+      replicas: 2
+      resources:
+        limits: { cpus: "1", memory: 1G }
+        reservations: { cpus: "0.25", memory: 256M }
+
+  chat-agent:
+    environment:
+      <<: *staging-env
+    deploy:
+      replicas: 2
+      resources:
+        limits: { cpus: "1", memory: 1G }
+        reservations: { cpus: "0.25", memory: 512M }
+
+  rag-pipeline:
+    environment:
+      <<: *staging-env
+    deploy:
+      replicas: 2
+      resources:
+        limits: { cpus: "2", memory: 2G }
+        reservations: { cpus: "0.5", memory: 512M }
+
+  scoring-service:
+    environment:
+      <<: *staging-env
+    deploy:
+      resources:
+        limits: { cpus: "1", memory: 1G }
+        reservations: { cpus: "0.25", memory: 256M }
+
+  forecast-service:
+    environment:
+      <<: *staging-env
+    deploy:
+      resources:
+        limits: { cpus: "2", memory: 2G }
+        reservations: { cpus: "0.5", memory: 512M }
+
+  content-generator:
+    environment:
+      <<: *staging-env
+    deploy:
+      resources:
+        limits: { cpus: "1", memory: 1G }
+        reservations: { cpus: "0.25", memory: 256M }
+
+  workflow-engine:
+    environment:
+      <<: *staging-env
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 512M }
+        reservations: { cpus: "0.25", memory: 256M }
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD}
+    deploy:
+      resources:
+        limits: { cpus: "2", memory: 2G }
