@@ -1,0 +1,29 @@
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir --prefix=/install .
+
+# ---------------------------------------------------------------------------
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
+COPY --from=builder /install /usr/local
+COPY src/workflow_engine/ src/workflow_engine/
+COPY src/shared/ src/shared/
+COPY src/__init__.py src/__init__.py
+COPY observability/ observability/
+
+USER appuser
+EXPOSE 8006
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8006/health')"
+
+CMD ["uvicorn", "src.workflow_engine.service:app", "--host", "0.0.0.0", "--port", "8006", "--workers", "2"]
