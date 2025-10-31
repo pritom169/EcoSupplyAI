@@ -1,0 +1,315 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: ecosupplyai
+  labels: &gw-labels
+    app.kubernetes.io/name: api-gateway
+    app.kubernetes.io/part-of: ecosupplyai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  template:
+    metadata:
+      labels: *gw-labels
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+    spec:
+      serviceAccountName: ecosupplyai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: api-gateway
+          image: ecosupplyai.azurecr.io/api-gateway:latest
+          ports: [{ containerPort: 8000 }]
+          envFrom:
+            - configMapRef: { name: ecosupplyai-config }
+            - secretRef: { name: ecosupplyai-secrets }
+          env:
+            - { name: SERVICE_NAME, value: api-gateway }
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /ready, port: 8000 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-agent
+  namespace: ecosupplyai
+  labels: &chat-labels
+    app.kubernetes.io/name: chat-agent
+    app.kubernetes.io/part-of: ecosupplyai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: chat-agent
+  template:
+    metadata:
+      labels: *chat-labels
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+    spec:
+      serviceAccountName: ecosupplyai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: chat-agent
+          image: ecosupplyai.azurecr.io/chat-agent:latest
+          ports: [{ containerPort: 8001 }]
+          envFrom:
+            - configMapRef: { name: ecosupplyai-config }
+            - secretRef: { name: ecosupplyai-secrets }
+          env:
+            - { name: SERVICE_NAME, value: chat-agent }
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: 8001 }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health, port: 8001 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-pipeline
+  namespace: ecosupplyai
+  labels: &rag-labels
+    app.kubernetes.io/name: rag-pipeline
+    app.kubernetes.io/part-of: ecosupplyai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rag-pipeline
+  template:
+    metadata:
+      labels: *rag-labels
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8002"
+    spec:
+      serviceAccountName: ecosupplyai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: rag-pipeline
+          image: ecosupplyai.azurecr.io/rag-pipeline:latest
+          ports: [{ containerPort: 8002 }]
+          envFrom:
+            - configMapRef: { name: ecosupplyai-config }
+            - secretRef: { name: ecosupplyai-secrets }
+          env:
+            - { name: SERVICE_NAME, value: rag-pipeline }
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { cpu: "2", memory: 2Gi }
+          livenessProbe:
+            httpGet: { path: /rag/health, port: 8002 }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /rag/health, port: 8002 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scoring-service
+  namespace: ecosupplyai
+  labels: &score-labels
+    app.kubernetes.io/name: scoring-service
+    app.kubernetes.io/part-of: ecosupplyai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: scoring-service
+  template:
+    metadata:
+      labels: *score-labels
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8003"
+    spec:
+      serviceAccountName: ecosupplyai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: scoring-service
+          image: ecosupplyai.azurecr.io/scoring-service:latest
+          ports: [{ containerPort: 8003 }]
+          envFrom:
+            - configMapRef: { name: ecosupplyai-config }
+            - secretRef: { name: ecosupplyai-secrets }
+          env:
+            - { name: SERVICE_NAME, value: scoring-service }
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: 8003 }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health, port: 8003 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forecast-service
+  namespace: ecosupplyai
+  labels: &forecast-labels
+    app.kubernetes.io/name: forecast-service
+    app.kubernetes.io/part-of: ecosupplyai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: forecast-service
+  template:
+    metadata:
+      labels: *forecast-labels
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8004"
+    spec:
+      serviceAccountName: ecosupplyai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: forecast-service
+          image: ecosupplyai.azurecr.io/forecast-service:latest
+          ports: [{ containerPort: 8004 }]
+          envFrom:
+            - configMapRef: { name: ecosupplyai-config }
+            - secretRef: { name: ecosupplyai-secrets }
+          env:
+            - { name: SERVICE_NAME, value: forecast-service }
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { cpu: "2", memory: 2Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: 8004 }
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health, port: 8004 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: content-generator
+  namespace: ecosupplyai
+  labels: &content-labels
+    app.kubernetes.io/name: content-generator
+    app.kubernetes.io/part-of: ecosupplyai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: content-generator
+  template:
+    metadata:
+      labels: *content-labels
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8005"
+    spec:
+      serviceAccountName: ecosupplyai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: content-generator
+          image: ecosupplyai.azurecr.io/content-generator:latest
+          ports: [{ containerPort: 8005 }]
+          envFrom:
+            - configMapRef: { name: ecosupplyai-config }
+            - secretRef: { name: ecosupplyai-secrets }
+          env:
+            - { name: SERVICE_NAME, value: content-generator }
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          livenessProbe:
+            httpGet: { path: /health, port: 8005 }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health, port: 8005 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-engine
+  namespace: ecosupplyai
+  labels: &wf-labels
+    app.kubernetes.io/name: workflow-engine
+    app.kubernetes.io/part-of: ecosupplyai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: workflow-engine
+  template:
+    metadata:
+      labels: *wf-labels
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8006"
+    spec:
+      serviceAccountName: ecosupplyai
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+        - name: workflow-engine
+          image: ecosupplyai.azurecr.io/workflow-engine:latest
+          ports: [{ containerPort: 8006 }]
+          envFrom:
+            - configMapRef: { name: ecosupplyai-config }
+            - secretRef: { name: ecosupplyai-secrets }
+          env:
+            - { name: SERVICE_NAME, value: workflow-engine }
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          livenessProbe:
+            httpGet: { path: /health, port: 8006 }
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          readinessProbe:
+            httpGet: { path: /health, port: 8006 }
+            initialDelaySeconds: 10
+            periodSeconds: 10
