@@ -1,0 +1,105 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecosupplyai
+  namespace: ecosupplyai
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: api-gateway
+  ports:
+    - { port: 8000, targetPort: 8000, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-agent
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: chat-agent
+  ports:
+    - { port: 8001, targetPort: 8001, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-pipeline
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: rag-pipeline
+  ports:
+    - { port: 8002, targetPort: 8002, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scoring-service
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: scoring-service
+  ports:
+    - { port: 8003, targetPort: 8003, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forecast-service
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: forecast-service
+  ports:
+    - { port: 8004, targetPort: 8004, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: content-generator
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: content-generator
+  ports:
+    - { port: 8005, targetPort: 8005, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workflow-engine
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: workflow-engine
+  ports:
+    - { port: 8006, targetPort: 8006, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: qdrant
+  ports:
+    - { port: 6333, targetPort: 6333, protocol: TCP, name: http }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: ecosupplyai
+spec:
+  selector:
+    app.kubernetes.io/name: redis
+  ports:
+    - { port: 6379, targetPort: 6379, protocol: TCP, name: tcp }
