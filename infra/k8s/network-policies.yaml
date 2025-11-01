@@ -1,0 +1,116 @@
+---
+# Default deny all ingress traffic for the ecosupplyai namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: ecosupplyai
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow API Gateway to receive external traffic via Ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-gateway
+  namespace: ecosupplyai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: api-gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - from: []  # Allow from any (Ingress controller)
+      ports:
+        - port: 8000
+          protocol: TCP
+---
+# Allow API Gateway to reach all backend services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-gateway-to-backends
+  namespace: ecosupplyai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: ecosupplyai
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: api-gateway
+      ports:
+        - port: 8001
+          protocol: TCP
+        - port: 8002
+          protocol: TCP
+        - port: 8003
+          protocol: TCP
+        - port: 8004
+          protocol: TCP
+        - port: 8005
+          protocol: TCP
+        - port: 8006
+          protocol: TCP
+        - port: 8007
+          protocol: TCP
+---
+# Allow chat-agent to reach RAG, Scoring, and Forecast services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-chat-agent-to-backends
+  namespace: ecosupplyai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: rag-pipeline
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: chat-agent
+      ports:
+        - port: 8002
+          protocol: TCP
+---
+# Allow Prometheus to scrape all services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: ecosupplyai
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: ecosupplyai
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - port: 8000
+          protocol: TCP
+        - port: 8001
+          protocol: TCP
+        - port: 8002
+          protocol: TCP
+        - port: 8003
+          protocol: TCP
+        - port: 8004
+          protocol: TCP
+        - port: 8005
+          protocol: TCP
+        - port: 8006
+          protocol: TCP
