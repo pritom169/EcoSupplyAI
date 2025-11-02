@@ -1,0 +1,141 @@
+global:
+  namespace: ecosupplyai
+  imageRegistry: ecosupplyai.azurecr.io
+  imagePullSecrets: []
+
+services:
+  api-gateway:
+    enabled: true
+    replicas: 2
+    port: 8000
+    image:
+      repository: api-gateway
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests: { cpu: 250m, memory: 256Mi }
+      limits: { cpu: "1", memory: 1Gi }
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+
+  chat-agent:
+    enabled: true
+    replicas: 2
+    port: 8001
+    image:
+      repository: chat-agent
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests: { cpu: 250m, memory: 512Mi }
+      limits: { cpu: "1", memory: 1Gi }
+    autoscaling:
+      enabled: false
+
+  rag-pipeline:
+    enabled: true
+    replicas: 2
+    port: 8002
+    image:
+      repository: rag-pipeline
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests: { cpu: 500m, memory: 512Mi }
+      limits: { cpu: "2", memory: 2Gi }
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+
+  scoring-service:
+    enabled: true
+    replicas: 2
+    port: 8003
+    image:
+      repository: scoring-service
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests: { cpu: 250m, memory: 256Mi }
+      limits: { cpu: "1", memory: 1Gi }
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 75
+
+  forecast-service:
+    enabled: true
+    replicas: 1
+    port: 8004
+    image:
+      repository: forecast-service
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests: { cpu: 500m, memory: 1Gi }
+      limits: { cpu: "2", memory: 2Gi }
+    autoscaling:
+      enabled: false
+
+  content-generator:
+    enabled: true
+    replicas: 1
+    port: 8005
+    image:
+      repository: content-generator
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests: { cpu: 250m, memory: 256Mi }
+      limits: { cpu: "1", memory: 1Gi }
+    autoscaling:
+      enabled: false
+
+  workflow-engine:
+    enabled: true
+    replicas: 1
+    port: 8006
+    image:
+      repository: workflow-engine
+      tag: latest
+      pullPolicy: IfNotPresent
+    resources:
+      requests: { cpu: 250m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+    autoscaling:
+      enabled: false
+
+qdrant:
+  enabled: true
+  image:
+    repository: qdrant/qdrant
+    tag: v1.7.4
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: managed-premium
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.ecosupplyai.dev
+  tls:
+    enabled: true
+    secretName: ecosupplyai-tls
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/limit-rps: "50"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+config:
+  DEPLOYMENT_ENV: production
+  LOG_LEVEL: info
+  AZURE_OPENAI_API_VERSION: "2024-10-21"
+  AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-4o"
+  AZURE_OPENAI_EMBEDDING_DEPLOYMENT: "text-embedding-3-small"
