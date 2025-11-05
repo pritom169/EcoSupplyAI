@@ -1,0 +1,85 @@
+# OpenTelemetry Collector Configuration for EcoSupplyAI
+# Receives traces and metrics from all microservices, processes them,
+# and exports to Prometheus (metrics) and Jaeger/OTLP (traces).
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+    send_batch_max_size: 1024
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  attributes:
+    actions:
+      - key: environment
+        value: "${DEPLOYMENT_ENV}"
+        action: upsert
+      - key: platform
+        value: ecosupplyai
+        action: upsert
+
+  resource:
+    attributes:
+      - key: service.namespace
+        value: ecosupplyai
+        action: upsert
+
+  filter:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["http.route"] == "/health"'
+        - 'attributes["http.route"] == "/ready"'
+        - 'attributes["http.route"] == "/metrics"'
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+  zpages:
+    endpoint: "0.0.0.0:55679"
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: ecosupplyai
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  otlp/jaeger:
+    endpoint: "jaeger:4317"
+    tls:
+      insecure: true
+
+  logging:
+    loglevel: warn
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+service:
+  extensions: [health_check, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes, resource, filter]
+      exporters: [otlp/jaeger, logging]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes, resource]
+      exporters: [prometheus, logging]
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      address: "0.0.0.0:8888"
