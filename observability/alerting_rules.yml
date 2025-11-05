@@ -1,0 +1,81 @@
+# Alerting Rules for EcoSupplyAI
+groups:
+  - name: service_health
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been unreachable for more than 2 minutes."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(ecosupplyai_http_errors_total[5m])) by (job)
+          / sum(rate(ecosupplyai_http_requests_total[5m])) by (job)
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}."
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(ecosupplyai_http_request_duration_seconds_bucket[5m])) by (le, job)
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency on {{ $labels.job }}"
+          description: "p95 latency is {{ $value }}s on {{ $labels.job }}."
+
+  - name: llm_monitoring
+    rules:
+      - alert: HighLLMCost
+        expr: |
+          sum(rate(ecosupplyai_llm_cost_dollars_total[1h])) * 3600 > 25
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM cost exceeding $25/hour"
+          description: "Current LLM spend is ${{ $value }}/hour."
+
+      - alert: LLMTokenBudgetExceeded
+        expr: |
+          sum(increase(ecosupplyai_llm_token_usage_total[24h])) > 5000000
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Daily LLM token budget exceeded"
+          description: "Used {{ $value }} tokens in the last 24 hours (budget: 5M)."
+
+  - name: rag_quality
+    rules:
+      - alert: LowGroundingScore
+        expr: ecosupplyai_rag_grounding_score < 0.6
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RAG grounding score below threshold"
+          description: "Grounding score is {{ $value }} (threshold: 0.6)."
+
+      - alert: HighHallucinationRate
+        expr: |
+          sum(rate(ecosupplyai_rag_hallucination_total[30m]))
+          / sum(rate(ecosupplyai_rag_queries_total[30m]))
+          > 0.1
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RAG hallucination rate above 10%"
+          description: "Hallucination rate is {{ $value | humanizePercentage }}."
