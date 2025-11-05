@@ -1,0 +1,83 @@
+# Prometheus Configuration for EcoSupplyAI
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    cluster: ecosupplyai
+    environment: production
+
+rule_files:
+  - "alerting_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  # OpenTelemetry Collector metrics
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8889"]
+
+  # API Gateway
+  - job_name: "api-gateway"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api-gateway:8000"]
+        labels:
+          service: api-gateway
+
+  # Chat Agent
+  - job_name: "chat-agent"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["chat-agent:8001"]
+        labels:
+          service: chat-agent
+
+  # RAG Pipeline
+  - job_name: "rag-pipeline"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["rag-pipeline:8002"]
+        labels:
+          service: rag-pipeline
+
+  # Scoring Service
+  - job_name: "scoring-service"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["scoring-service:8003"]
+        labels:
+          service: scoring-service
+
+  # Forecast Service
+  - job_name: "forecast-service"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["forecast-service:8004"]
+        labels:
+          service: forecast-service
+
+  # Content Generator
+  - job_name: "content-generator"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["content-generator:8005"]
+        labels:
+          service: content-generator
+
+  # Workflow Engine
+  - job_name: "workflow-engine"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["workflow-engine:8006"]
+        labels:
+          service: workflow-engine
+
+  # Qdrant
+  - job_name: "qdrant"
+    static_configs:
+      - targets: ["qdrant:6333"]
