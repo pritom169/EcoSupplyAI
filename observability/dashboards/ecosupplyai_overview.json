@@ -1,0 +1,162 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Service Health",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [{ "options": { "0": { "text": "DOWN" }, "1": { "text": "UP" } }, "type": "value" }],
+          "thresholds": { "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "up{job=~\"$service\"}", "legendFormat": "{{ job }}" }],
+      "title": "Service Status",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Request Metrics",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sum(rate(ecosupplyai_http_requests_total{job=~\"$service\"}[$__rate_interval])) by (job)", "legendFormat": "{{ job }}" }
+      ],
+      "title": "Request Rate (req/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 3,
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(ecosupplyai_http_request_duration_seconds_bucket{job=~\"$service\"}[$__rate_interval])) by (le, job))", "legendFormat": "p50 {{ job }}" },
+        { "expr": "histogram_quantile(0.95, sum(rate(ecosupplyai_http_request_duration_seconds_bucket{job=~\"$service\"}[$__rate_interval])) by (le, job))", "legendFormat": "p95 {{ job }}" },
+        { "expr": "histogram_quantile(0.99, sum(rate(ecosupplyai_http_request_duration_seconds_bucket{job=~\"$service\"}[$__rate_interval])) by (le, job))", "legendFormat": "p99 {{ job }}" }
+      ],
+      "title": "Request Latency (p50/p95/p99)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "id": 4,
+      "targets": [
+        { "expr": "sum(rate(ecosupplyai_http_errors_total{job=~\"$service\"}[$__rate_interval])) by (job) / sum(rate(ecosupplyai_http_requests_total{job=~\"$service\"}[$__rate_interval])) by (job)", "legendFormat": "{{ job }}" }
+      ],
+      "title": "Error Rate",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "id": 102,
+      "title": "LLM Usage & Cost",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
+      "id": 5,
+      "targets": [
+        { "expr": "sum(rate(ecosupplyai_llm_token_usage_total{job=~\"$service\",direction=\"input\"}[$__rate_interval])) by (job)", "legendFormat": "{{ job }} input" },
+        { "expr": "sum(rate(ecosupplyai_llm_token_usage_total{job=~\"$service\",direction=\"output\"}[$__rate_interval])) by (job)", "legendFormat": "{{ job }} output" }
+      ],
+      "title": "LLM Token Usage (Input / Output)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
+      "id": 6,
+      "targets": [
+        { "expr": "sum(rate(ecosupplyai_llm_cost_dollars_total{job=~\"$service\"}[$__rate_interval])) by (job) * 3600", "legendFormat": "{{ job }}" }
+      ],
+      "title": "LLM Cost ($/hour)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 },
+      "id": 103,
+      "title": "RAG & Workflows",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "id": 7,
+      "targets": [
+        { "expr": "ecosupplyai_rag_grounding_score{job=\"rag-pipeline\"}", "legendFormat": "Grounding" },
+        { "expr": "ecosupplyai_rag_relevance_score{job=\"rag-pipeline\"}", "legendFormat": "Relevance" }
+      ],
+      "title": "RAG Retrieval Quality",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "id": 8,
+      "options": { "colorMode": "background", "graphMode": "area" },
+      "targets": [
+        { "expr": "ecosupplyai_workflow_active_runs{job=\"workflow-engine\"}", "legendFormat": "Active Runs" },
+        { "expr": "sum(increase(ecosupplyai_workflow_completed_total{job=\"workflow-engine\"}[1h]))", "legendFormat": "Completed (1h)" },
+        { "expr": "sum(increase(ecosupplyai_workflow_failed_total{job=\"workflow-engine\"}[1h]))", "legendFormat": "Failed (1h)" }
+      ],
+      "title": "Workflow Runs",
+      "type": "stat"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["ecosupplyai", "overview"],
+  "templating": {
+    "list": [
+      { "name": "datasource", "type": "datasource", "query": "prometheus" },
+      {
+        "allValue": ".*",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "query": "label_values(up, job)",
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "EcoSupplyAI Platform Overview",
+  "uid": "ecosupplyai-overview",
+  "version": 1
+}
