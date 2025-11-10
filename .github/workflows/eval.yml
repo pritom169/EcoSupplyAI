@@ -1,0 +1,80 @@
+name: Evaluation
+on:
+  pull_request:
+    branches: [main]
+    paths: ["prompt_registry/**", "src/**", "eval/**"]
+permissions: { contents: read, pull-requests: write }
+
+jobs:
+  evaluate:
+    name: Run Evaluation Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: eval-pip-${{ hashFiles('pyproject.toml') }}
+      - run: pip install --no-cache-dir -e ".[dev]"
+      - name: Run evaluations
+        id: eval
+        env:
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_DEPLOYMENT_NAME: gpt-4o
+          ENVIRONMENT: eval
+        run: |
+          python -m eval.run_eval --output-file eval-results.json 2>&1 | tee eval-output.log
+          python3 -c "
+          import json
+          with open('eval-results.json') as f: r = json.load(f)
+          m = r.get('aggregate_metrics', {})
+          faith = m.get('faithfulness', 0)
+          rel = m.get('answer_relevancy', 0)
+          with open('$GITHUB_OUTPUT','a') as g:
+              g.write(f'faithfulness={faith}\n')
+              g.write(f'relevancy={rel}\n')
+              g.write(f'eval_passed={\"true\" if faith >= 0.7 and rel >= 0.7 else \"false\"}\n')
+          "
+
+      - name: Post PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let r = {};
+            try { r = JSON.parse(fs.readFileSync('eval-results.json','utf8')); } catch(e) {}
+            const m = r.aggregate_metrics || {};
+            const f = (m.faithfulness||0).toFixed(3);
+            const rv = (m.answer_relevancy||0).toFixed(3);
+            const ok = '${{ steps.eval.outputs.eval_passed }}' === 'true';
+            const body = `## Eval Results ${ok ? ':white_check_mark: PASSED' : ':x: FAILED'}
+            | Metric | Score | Threshold |
+            |--------|-------|-----------|
+            | Faithfulness | ${f} | >= 0.70 |
+            | Relevancy | ${rv} | >= 0.70 |`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: |
+            eval-results.json
+            eval-output.log
+
+      - name: Check thresholds
+        if: steps.eval.outputs.eval_passed != 'true'
+        run: |
+          echo "Quality thresholds not met!"
+          exit 1
