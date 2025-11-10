@@ -1,0 +1,99 @@
+name: CD
+on:
+  push:
+    tags: ["v*.*.*"]
+permissions: { contents: read, id-token: write }
+env:
+  ACR_NAME: ecosupplyaiacr
+  ACR_LOGIN_SERVER: ecosupplyaiacr.azurecr.io
+  RESOURCE_GROUP: ecosupplyai-prod-rg
+
+jobs:
+  build-and-push:
+    name: Build & Push (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api-gateway, chat-agent, rag-pipeline, scoring-service, forecast-service, content-generator, workflow-engine]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - run: az acr login --name ${{ env.ACR_NAME }}
+      - id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ env.ACR_LOGIN_SERVER }}/${{ matrix.service }}:${{ steps.version.outputs.version }}
+            ${{ env.ACR_LOGIN_SERVER }}/${{ matrix.service }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - name: Deploy Container Apps
+        run: |
+          for SVC in api-gateway chat-agent rag-pipeline scoring-service forecast-service content-generator workflow-engine; do
+            echo "Deploying $SVC..."
+            az containerapp update \
+              --name "ecosupplyai-prod-$SVC" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --image "${{ env.ACR_LOGIN_SERVER }}/$SVC:${{ steps.version.outputs.version }}" \
+              --output none
+          done
+      - run: sleep 60
+      - name: Smoke tests
+        run: |
+          API_URL=$(az containerapp show \
+            --name ecosupplyai-prod-api-gateway \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$API_URL/health")
+          [ "$HTTP_STATUS" -eq 200 ] || exit 1
+          echo "Smoke tests passed"
+
+  rollback:
+    name: Rollback
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: failure()
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Rollback revisions
+        run: |
+          for SVC in api-gateway chat-agent rag-pipeline scoring-service forecast-service content-generator workflow-engine; do
+            echo "Rolling back $SVC..."
+            PREV=$(az containerapp revision list \
+              --name "ecosupplyai-prod-$SVC" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --query "[?properties.active].name" -o tsv | tail -1)
+            [ -n "$PREV" ] && az containerapp revision activate \
+              --name "ecosupplyai-prod-$SVC" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --revision "$PREV" --output none || true
+          done
