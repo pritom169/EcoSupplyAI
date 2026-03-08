@@ -555,5 +555,3 @@ As a platform dedicated to supply chain sustainability, we hold ourselves accoun
 5. **Quality regression threshold**: Quality metric regressions > 5% require explicit sign-off from the AI engineering lead and product owner.
 
 ---
-
-*This document is reviewed quarterly. Last review: [Date]. Next review: [Date + 3 months]. Owner: AI Engineering Team.*
