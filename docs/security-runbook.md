@@ -458,5 +458,3 @@ Executive Team + External Incident Response
 ```
 
 ---
-
-*This runbook is a living document. Last reviewed: [Date]. Next review: [Date + 3 months]. Owner: Security Team.*
